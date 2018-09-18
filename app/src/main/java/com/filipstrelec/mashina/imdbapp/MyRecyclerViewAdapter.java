@@ -25,9 +25,20 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
     private Context context;
     private List<String> titleArrayList;
     private List<String> imageArrayList;
+
     private LinearLayout descriptionLayout;
     private boolean[] booleans;
     private boolean boolean_test;
+
+    public boolean isBoolean_test() {
+        return boolean_test;
+    }
+
+    public void setBoolean_test(boolean boolean_test) {
+        this.boolean_test = boolean_test;
+    }
+
+
 
 
 
@@ -66,45 +77,33 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, final int position) {
 
+        boolean expanded = isBoolean_test();
+
+        descriptionLayout.setVisibility(expanded ? View.VISIBLE : View.GONE);
 
         Glide.with(context).asBitmap().load(imageArrayList.get(position)).into(holder.image);
         holder.textTitle.setText(titleArrayList.get(position));
 
 //        descriptionLayout.setVisibility(booleans[position] ? View.VISIBLE : View.GONE);
-        if (boolean_test){
-
-            descriptionLayout.setVisibility(View.VISIBLE);
-
-        }
-        else{
-            descriptionLayout.setVisibility(View.GONE);
-
-        }
 
 
-//        holder.relativeLayout.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                //za onclick ako treba nest
-//
-//                if (booleans[position]==true){
-//
-//                    booleans[position]=false;
-//
-//                }
-//                else{
-//                    booleans[position]=true;
-//
-//                }
-//
-//
-////                expand.setExpanded(!expanded);
-//                Toast.makeText(context, "Kliknuo si "+(position+1)+". objekt u recyclerView-u", Toast.LENGTH_SHORT).show();
-//                Log.i("fakingBulean"+position, String.valueOf(booleans[position]));
-//                notifyItemChanged(position);
-//
-//            }
-//        });
+
+        holder.relativeLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //za onclick ako treba nest
+
+           boolean expanded = isBoolean_test();
+           setBoolean_test(!expanded);
+                notifyItemChanged(position);
+
+                Toast.makeText(context, "Kliknuo si "+(position+1)+". objekt u recyclerView-u", Toast.LENGTH_SHORT).show();
+                Log.i("fakingBulean"+position, String.valueOf(booleans[position]));
+
+
+
+            }
+        });
 
 
 
@@ -117,7 +116,9 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
     }
 
 
-    public class ViewHolder extends RecyclerView.ViewHolder  implements  View.OnClickListener{
+    public class ViewHolder extends RecyclerView.ViewHolder
+//            implements  View.OnClickListener
+    {
 
 
         CircularImageView image;
@@ -127,7 +128,7 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
 
         public ViewHolder(View itemView) {
             super(itemView);
-            itemView.setOnClickListener(this);
+//            itemView.setOnClickListener(this);
             image = itemView.findViewById(R.id.circleViewList);
             textTitle = itemView.findViewById(R.id.textList);
             relativeLayout = itemView.findViewById(R.id.relativeLayoutList);
@@ -138,31 +139,23 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
 
         }
 
-
-        @Override
-        public void onClick(View v) {
-//            Toast.makeText(v.getContext(), "position = " + getLayoutPosition(), Toast.LENGTH_SHORT).show();
-
-            Log.i("fakingBulecan"+getLayoutPosition(), String.valueOf(booleans[getLayoutPosition()]));
-
-            if (boolean_test==true){
-
-                  boolean_test=false;
-
-                }
-                else{
-                    boolean_test=true;
-
-                }
-
-            notifyItemChanged(getLayoutPosition());
-
-//            if(getLayoutPosition()==0){
-//                Toast.makeText(v.getContext(), "positwfqwfqion = " + getLayoutPosition(), Toast.LENGTH_SHORT).show();
 //
-//            }
-
-        }
+//        @Override
+//        public void onClick(View v) {
+////            Toast.makeText(v.getContext(), "position = " + getLayoutPosition(), Toast.LENGTH_SHORT).show();
+//
+//            Log.i("fakingBulecan"+getLayoutPosition(), String.valueOf(booleans[getLayoutPosition()]));
+//
+//
+//
+//            notifyItemChanged(getLayoutPosition());
+////notifyDataSetChanged();
+////            if(getLayoutPosition()==0){
+////                Toast.makeText(v.getContext(), "positwfqwfqion = " + getLayoutPosition(), Toast.LENGTH_SHORT).show();
+////
+////            }
+//
+//        }
     }
 
 
