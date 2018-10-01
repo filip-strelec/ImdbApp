@@ -1,5 +1,6 @@
 package com.filipstrelec.mashina.imdbapp;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -23,6 +24,7 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,12 +35,17 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -48,12 +55,12 @@ public class MainActivity extends AppCompatActivity
     List<String> listOfObjectsUrlPoster;
     List<String> listOfObjectsSimplePlot;
     List<String> listOfObjectsRating;
-    Button testGumb;
+
     DownloadTask downloadTask;
     TextView tv;
     LinearLayout descriptionLayout;
     int random;
-    int switcher;
+    static int switcher;
     String execute;
     JSONObject jsonObjectMain;
     JSONObject jsonObjectData;
@@ -63,7 +70,31 @@ public class MainActivity extends AppCompatActivity
     SharedPreferences.Editor editor;
     SharedPreferences prefs;
 
-    public class DownloadTask extends AsyncTask<String, Void, StringBuffer> {
+    TinyDB tinydb;
+
+
+    private  class DownloadTask extends AsyncTask<String, Integer, StringBuffer> {
+
+
+        private ProgressDialog progressDialog;
+        private Context context;
+
+
+        private DownloadTask(Context context) {
+            this.context = context;
+        }
+
+        @Override
+        protected void onPreExecute() {
+
+            progressDialog = new ProgressDialog(context);
+            progressDialog.setIndeterminate(true);
+            progressDialog.setMessage("Molimo pričekajte...");
+            progressDialog.setCanceledOnTouchOutside(false);
+
+
+            progressDialog.show();
+        }
 
 
         @Override
@@ -79,16 +110,22 @@ public class MainActivity extends AppCompatActivity
                 connection.connect();
                 int resCode = connection.getResponseCode();
 
+
                 if (resCode == HttpURLConnection.HTTP_OK) {
 
                     InputStream is = connection.getInputStream();
-                    //BufferedReader br = new BufferedReader(new InputStreamReader(new GZIPInputStream(is)));
+
+
                     BufferedReader br = new BufferedReader(new InputStreamReader(is));
+
                     String line;
                     while ((line = br.readLine()) != null) {
+
+
                         buffer.append(line);
 
                     }
+
 
                     is.close();
                     br.close();
@@ -99,12 +136,13 @@ public class MainActivity extends AppCompatActivity
             } catch (Exception e) {
                 e.printStackTrace();
                 if (e instanceof UnknownHostException) {
-                    //errorResponse = "Check your internet connection";
+
                 }
             }
             return buffer;
 
         }
+
 
         @Override
         protected void onPostExecute(StringBuffer html) {
@@ -112,19 +150,13 @@ public class MainActivity extends AppCompatActivity
 
             Log.i("proba", html.toString());
             if (html.length() > 0) {
-
+                progressDialog.dismiss();
 
                 try {
                     jsonObjectMain = new JSONObject(html.toString());
                     jsonObjectData = jsonObjectMain.getJSONObject("data");
 
-                    jsonArrayMain = null;
-                    jsonObjectMovie = null;
-                    listOfObjectsTitle = null;
-                    listOfObjectsYear = null;
-                    listOfObjectsUrlPoster = null;
-                    listOfObjectsSimplePlot = null;
-                    listOfObjectsRating = null;
+
                     listOfObjectsTitle = new ArrayList<String>();
                     listOfObjectsYear = new ArrayList<String>();
                     listOfObjectsUrlPoster = new ArrayList<String>();
@@ -174,6 +206,8 @@ public class MainActivity extends AppCompatActivity
                                 jsonObjectMovie = (movies_aArray.getJSONObject(j));
 
 
+
+
                                 String jsonObjectForTitle = jsonObjectMovie.getString("title");
                                 String jsonObjectForYear = jsonObjectMovie.getString("year");
                                 String jsonObjectForUrlPoster = jsonObjectMovie.getString("urlPoster");
@@ -202,52 +236,53 @@ public class MainActivity extends AppCompatActivity
 
         }
 
+
+//        @Override
+//        protected void onProgressUpdate(Integer... values) {
+//
+//
+//        }
+
+
     }
 
 
-    public void clickTest(View view) {
-
-//        Log.i("testko", "testić");
-////        downloadTask.execute("http://api.myapifilms.com/imdb/top?start=1&end=50&token=b4d10753-9bce-4f2d-8a4f-78a5874dc966&format=json&data=1");
-////        downloadTask.execute("http://www.monitor.hr");
-//        random=new Random().nextInt(10)+1;
-//        execute = "http://api.myapifilms.com/imdb/top?start="+((random*25)-24)+"&end="+random*25+"&token=b4d10753-9bce-4f2d-8a4f-78a5874dc966&format=json&data=1";
-//        Log.i("randomTest", String.valueOf(random));
-//        Log.i("randomTestE", execute);
-//     Log.i("randomTestE", String.valueOf(jsonArrayMain));
-//        Log.i("randomTestA", String.valueOf(listOfObjectsTitle));
-        Log.i("random", String.valueOf(random));
-        Log.i("ABCtitlee", String.valueOf(listOfObjectsTitle));
-        Log.i("ABCyear", String.valueOf(listOfObjectsYear));
-        Log.i("ABCurlPoster", String.valueOf(listOfObjectsUrlPoster));
-        Log.i("ABCsimplePlot", String.valueOf(listOfObjectsSimplePlot));
-        Log.i("ABCrating", String.valueOf(listOfObjectsRating));
-
-        Log.i("switcher", String.valueOf(switcher));
-
-        if(switcher==1){
-
-            descriptionLayout.setVisibility(View.VISIBLE);
-
-
-        }
-
-        else {
-
-            descriptionLayout.setVisibility(View.GONE);
-        }
-
-    }
+//    public void clickTest(View view) {
+//
+//        /*
+//          Za debug
+//         */
+//
+//
+////
+////        Log.i("random", String.valueOf(random));
+////        Log.i("ABCtitlee", String.valueOf(listOfObjectsTitle));
+////        Log.i("ABCyear", String.valueOf(listOfObjectsYear));
+////        Log.i("ABCurlPoster", String.valueOf(listOfObjectsUrlPoster));
+////        Log.i("ABCsimplePlot", String.valueOf(listOfObjectsSimplePlot));
+////        Log.i("ABCrating", String.valueOf(listOfObjectsRating));
+////
+////        Log.i("switcher", String.valueOf(switcher));
+//
+////        Log.i("Prefs", String.valueOf(prefs.getStringSet("setTitle", null)));
+//
+//
+//        Log.i("GLAVNITEST", String.valueOf(tinydb.getListString("title")));
+//        Log.i("GLAVNITEST", String.valueOf(tinydb.getListString("image")));
+//        Log.i("GLAVNITEST", String.valueOf(tinydb.getListString("desc")));
+//        Log.i("GLAVNITESTSWITCHER", String.valueOf(switcher));
+//
+//    }
 
 
     private void print(String printS) {
-        Log.i("testtt", printS);
 
-        MyRecyclerViewAdapter adapter =(new MyRecyclerViewAdapter(this, listOfObjectsTitle, listOfObjectsUrlPoster));
+
+        MyRecyclerViewAdapter adapter = (new MyRecyclerViewAdapter(this, listOfObjectsTitle, listOfObjectsUrlPoster, listOfObjectsSimplePlot));
 
         recyclerView.setAdapter(adapter);
 
-//        tv.setText(printS);
+
     }
 
     @Override
@@ -258,6 +293,8 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
         prefs = getSharedPreferences("Myprefs", MODE_PRIVATE);
         switcher = prefs.getInt("switcher", 1);
+        tinydb = new TinyDB(this);
+
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -269,47 +306,67 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
 
-        descriptionLayout=findViewById(R.id.description_layout);
-        testGumb = findViewById(R.id.gumb);
-        downloadTask = new DownloadTask();
-//        tv = findViewById(R.id.ispis);
+        descriptionLayout = findViewById(R.id.description_layout);
+
+        downloadTask = new DownloadTask(this);
+        recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
         random = new Random().nextInt(10) + 1;
         if (switcher == 1) {
 
             execute = "http://api.myapifilms.com/imdb/top?start=" + ((random * 25) - 24) + "&end=" + random * 25 + "&token=b4d10753-9bce-4f2d-8a4f-78a5874dc966&format=json&data=1";
+
+
+            try {
+                downloadTask.execute(execute);
+
+            } catch (Exception e) {
+
+
+                Context context = getApplicationContext();
+                CharSequence text = "Error (provjerite internetsku vezu)";
+                int duration = Toast.LENGTH_SHORT;
+
+                Toast toast = Toast.makeText(context, text, duration);
+                toast.show();
+
+                e.printStackTrace();
+            }
+
+
         } else if (switcher == 2) {
 
             execute = "http://api.myapifilms.com/imdb/inTheaters?token=b4d10753-9bce-4f2d-8a4f-78a5874dc966&format=json&language=en-us";
+
+
+            try {
+                downloadTask.execute(execute);
+
+            } catch (Exception e) {
+
+
+                Context context = getApplicationContext();
+                CharSequence text = "Error (provjerite internetsku vezu)";
+                int duration = Toast.LENGTH_SHORT;
+
+                Toast toast = Toast.makeText(context, text, duration);
+                toast.show();
+
+                e.printStackTrace();
+            }
+
+        } else if (switcher == 3) {
+
+            listOfObjectsTitle = tinydb.getListString("title");
+
+            listOfObjectsUrlPoster = tinydb.getListString("image");
+            listOfObjectsSimplePlot = tinydb.getListString("desc");
+
+            MyRecyclerViewAdapter adapter = (new MyRecyclerViewAdapter(this, listOfObjectsTitle, listOfObjectsUrlPoster, listOfObjectsSimplePlot));
+
+            recyclerView.setAdapter(adapter);
+
         }
-
-
-//        downloadTask.execute("http://api.myapifilms.com/imdb/top?start=1&end=50&token=b4d10753-9bce-4f2d-8a4f-78a5874dc966&format=json&data=1");
-        Log.i("2", "2");
-
-        try {
-            downloadTask.execute(execute);
-
-        } catch (Exception e) {
-
-
-            Context context = getApplicationContext();
-            CharSequence text = "Error (provjerite internetsku vezu)";
-            int duration = Toast.LENGTH_SHORT;
-
-            Toast toast = Toast.makeText(context, text, duration);
-            toast.show();
-
-            e.printStackTrace();
-        }
-
-
-//        downloadTask.execute(execute);
-
-
-        recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setHasFixedSize(true);
-        ((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
 
 
     }
@@ -332,22 +389,7 @@ public class MainActivity extends AppCompatActivity
         return false;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
@@ -356,8 +398,12 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.top_movies) {
             // Handle the camera action
             editor = getSharedPreferences("Myprefs", MODE_PRIVATE).edit();
+
             editor.putInt("switcher", 1);
+
+
             editor.apply();
+
             Intent i = getBaseContext().getPackageManager()
                     .getLaunchIntentForPackage(getBaseContext().getPackageName());
             i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -371,7 +417,16 @@ public class MainActivity extends AppCompatActivity
             i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(i);
         } else if (id == R.id.wishlist) {
+            editor = getSharedPreferences("Myprefs", MODE_PRIVATE).edit();
 
+            editor.putInt("switcher", 3);
+
+
+            editor.apply();
+            Intent i = getBaseContext().getPackageManager()
+                    .getLaunchIntentForPackage(getBaseContext().getPackageName());
+            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(i);
         }
 
 //        else if (id == R.id.nav_share) {
